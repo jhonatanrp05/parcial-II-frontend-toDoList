@@ -69,7 +69,7 @@
   background-color: #f0f2f5;
 }
 
-.header {
+.toDoListcontainer > header {
   display: flex;
   justify-content: flex-end;
   width: 100%;
