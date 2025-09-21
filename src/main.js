@@ -1,24 +1,29 @@
-import './style.css'
-import javascriptLogo from './javascript.svg'
-import viteLogo from '/vite.svg'
-import { setupCounter } from './counter.js'
+import "./style.css";
 
-document.querySelector('#app').innerHTML = `
-  <div>
-    <a href="https://vite.dev" target="_blank">
-      <img src="${viteLogo}" class="logo" alt="Vite logo" />
-    </a>
-    <a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank">
-      <img src="${javascriptLogo}" class="logo vanilla" alt="JavaScript logo" />
-    </a>
-    <h1>Hello Vite!</h1>
-    <div class="card">
-      <button id="counter" type="button"></button>
+const loginPage = /*html*/ `
+<div class="container">
+
+    <div class="loginContainer">
+        <h2>Login</h2>
+        <form class="loginForm">
+            <input type="text" id="inputUsername" name="username" required placeholder="Username" />
+            <input type="password" id="inputPassword" name="password" required placeholder="Password" />
+            <button id="loginButton" type="submit">Login</button>
+        </form>
     </div>
-    <p class="read-the-docs">
-      Click on the Vite logo to learn more
-    </p>
-  </div>
-`
+</div>
+`;
 
-setupCounter(document.querySelector('#counter'))
+const toDoListPage = /*html*/ `
+<div class="app-container">
+    <h1>Welcome to the App!</h1>
+    <div class="counter">
+        <button id="counter" type="button">count is 0</button>
+    </div>
+</div>
+
+
+
+`;
+
+document.querySelector("#app").innerHTML = loginPage;
