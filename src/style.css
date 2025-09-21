@@ -167,3 +167,15 @@
   background-color: #00674f;
   border-radius: 100%;
 }
+
+.editIcon {
+  width: 25px;
+  height: 25px;
+  cursor: pointer;
+}
+
+.editIcon:hover {
+  filter: brightness(0.8);
+  background-color: #ffc107;
+  border-radius: 5px;
+}
