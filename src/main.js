@@ -113,9 +113,19 @@ const renderApp = () => {
           const inputTextEdit = document.createElement("input");
           inputTextEdit.type = "text";
           inputTextEdit.value = task.text;
+          const closeIcon = document.createElement("img");
+          closeIcon.src = "./src/closeIcon.svg";
+          closeIcon.alt = "CloseIcon";
+          closeIcon.className = "closeIcon";
+          closeIcon.addEventListener("click", () => {
+            renderTasks();
+          });
           li.innerHTML = "";
+          actionsButtonsContainer.innerHTML = "";
+          actionsButtonsContainer.appendChild(closeIcon);
           li.appendChild(inputTextEdit);
           li.appendChild(actionsButtonsContainer);
+
           inputTextEdit.focus();
 
           inputTextEdit.addEventListener("keydown", (e) => {
@@ -135,9 +145,8 @@ const renderApp = () => {
         actionsButtonsContainer.className = "actionsButtonsContainer";
         li.appendChild(actionsButtonsContainer);
         actionsButtonsContainer.appendChild(checkIcon);
-        actionsButtonsContainer.appendChild(trashIcon);
         actionsButtonsContainer.appendChild(editIcon);
-
+        actionsButtonsContainer.appendChild(trashIcon);
         taskList.appendChild(li);
       });
     };
