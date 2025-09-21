@@ -16,11 +16,15 @@ const loginPage = /*html*/ `
 `;
 
 const toDoListPage = /*html*/ `
-<div class="app-container">
+<div class="toDoListcontainer">
+    <div class="header">
+        <button id="logoutButton" type="button">Logout</button>
+    </div>
     <h1>Welcome to the App!</h1>
     <div class="counter">
         <button id="counter" type="button">count is 0</button>
     </div>
+
 </div>
 `;
 
@@ -44,13 +48,20 @@ const isLoggedIn = () => {
 const renderApp = () => {
   if (isLoggedIn()) {
     document.querySelector("#app").innerHTML = toDoListPage;
+
+    const logoutButton = document.getElementById("logoutButton");
+    if (logoutButton) {
+      logoutButton.addEventListener("click", function () {
+        localStorage.removeItem("loggedInUser");
+        renderApp();
+      });
+    }
   } else {
     document.querySelector("#app").innerHTML = loginPage;
 
     const loginForm = document.querySelector(".loginForm");
     if (loginForm) {
       loginForm.addEventListener("submit", function (e) {
-        console.log(e);
         e.preventDefault();
         const username = document.getElementById("inputUsername").value;
         const password = document.getElementById("inputPassword").value;
