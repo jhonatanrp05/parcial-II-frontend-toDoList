@@ -7,7 +7,7 @@ const users = [
   },
 ];
 
-const tasks = localStorage.getItem("tasksList")
+let tasks = localStorage.getItem("tasksList")
   ? JSON.parse(localStorage.getItem("tasksList"))
   : [];
 
@@ -59,6 +59,39 @@ const isLoggedIn = () => {
 const renderApp = () => {
   if (isLoggedIn()) {
     document.querySelector("#app").innerHTML = toDoListPage;
+
+    // Load tasks from localStorage and render them
+    const loadAndRenderTasks = async () => {
+      const localTasks = localStorage.getItem("tasksList")
+        ? JSON.parse(localStorage.getItem("tasksList"))
+        : [];
+
+      try {
+        const response = await fetch(
+          "https://dummyjson.com/c/28e8-a101-4223-a35c"
+        );
+
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        // Parse the JSON response
+        const externalTasks = await response.json();
+
+        // Combine local tasks with external tasks
+        const allTasks = [...localTasks, ...externalTasks];
+
+        // Sort tasks by creation date
+        allTasks.sort((taskA, taskB) => taskA.createdAt - taskB.createdAt);
+
+        tasks = allTasks;
+      } catch (error) {
+        console.error("Error fetching external tasks:", error);
+        tasks = localTasks; // Fallback to local tasks if fetch fails
+      }
+
+      renderTasks();
+    };
+
     const logoutButton = document.getElementById("logoutButton");
     if (logoutButton) {
       logoutButton.addEventListener("click", function () {
@@ -92,8 +125,8 @@ const renderApp = () => {
         }
         checkIcon.addEventListener("click", () => {
           task.done = !task.done;
-          task.updatedAt = new Date().toLocaleString();
-          localStorage.setItem("tasksList", JSON.stringify(tasks));
+          task.updatedAt = Date.now();
+          saveUserTasksToLocalStorage();
           renderTasks();
         });
 
@@ -103,7 +136,7 @@ const renderApp = () => {
         trashIcon.className = "trashIcon";
         trashIcon.addEventListener("click", () => {
           tasks.splice(index, 1);
-          localStorage.setItem("tasksList", JSON.stringify(tasks));
+          saveUserTasksToLocalStorage();
           renderTasks();
         });
 
@@ -135,8 +168,8 @@ const renderApp = () => {
               const newText = inputTextEdit.value.trim();
               if (newText) {
                 task.text = newText;
-                task.updatedAt = new Date().toLocaleString();
-                localStorage.setItem("tasksList", JSON.stringify(tasks));
+                task.updatedAt = Date.now();
+                saveUserTasksToLocalStorage();
                 renderTasks();
               }
             }
@@ -161,19 +194,26 @@ const renderApp = () => {
           id: idList + 1,
           text,
           done: false,
-          createdAt: now.toLocaleString(),
-          updatedAt: now.toLocaleString(),
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          isUserTask: true,
         };
         idList += 1;
         tasks.push(newTask);
         taskInput.value = "";
-        localStorage.setItem("tasksList", JSON.stringify(tasks));
+        saveUserTasksToLocalStorage();
         renderTasks();
       }
     };
 
+    const saveUserTasksToLocalStorage = () => {
+      const userTasks = tasks.filter((task) => task.isUserTask === true);
+      localStorage.setItem("tasksList", JSON.stringify(userTasks));
+    };
+
     addTaskButton.addEventListener("click", addTask);
-    renderTasks();
+
+    loadAndRenderTasks();
   } else {
     document.querySelector("#app").innerHTML = loginPage;
 
