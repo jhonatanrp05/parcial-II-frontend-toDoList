@@ -213,6 +213,8 @@ const renderApp = () => {
           const data = await response.json();
           data.forEach((item) => {
             item.id = idList + 1;
+            item.createdAt = new Date().toLocaleString();
+            item.updatedAt = new Date().toLocaleString();
             idList += 1;
             tasks.push(item);
           });
