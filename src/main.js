@@ -17,6 +17,10 @@ let idList = localStorage.getItem("idList")
   ? JSON.parse(localStorage.getItem("idList"))
   : 0;
 
+let deletedApiTaskIds = localStorage.getItem("deletedApiTaskIds")
+  ? JSON.parse(localStorage.getItem("deletedApiTaskIds"))
+  : [];
+
 const loginPage = /*html*/ `
 <div class="container">
 
@@ -74,13 +78,16 @@ const renderApp = () => {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
         apiTasks = await response.json();
+
+        apiTasks = apiTasks.filter(
+          (task) => !deletedApiTaskIds.includes(task.id)
+        );
       } catch (error) {
         console.error("Error fetching external tasks:", error);
       }
 
       tasks = [...userTasks, ...apiTasks];
-
-      tasks.sort((taskA, taskB) => taskA.createdAt - taskB.createdAt);
+      tasks.sort((taskA, taskB) => taskB.createdAt - taskA.createdAt);
 
       renderTasks();
     };
@@ -146,6 +153,14 @@ const renderApp = () => {
           if (userTaskIndex > -1) {
             userTasks.splice(userTaskIndex, 1);
             saveUserTasksToLocalStorage();
+          } else {
+            if (!deletedApiTaskIds.includes(taskToRemove.id)) {
+              deletedApiTaskIds.push(taskToRemove.id);
+              localStorage.setItem(
+                "deletedApiTaskIds",
+                JSON.stringify(deletedApiTaskIds)
+              );
+            }
           }
 
           tasks.splice(index, 1);
@@ -265,7 +280,7 @@ const renderApp = () => {
       userTasks.push(newTask);
       saveUserTasksToLocalStorage();
       tasks.push(newTask);
-      tasks.sort((taskA, taskB) => taskA.createdAt - taskB.createdAt);
+      tasks.sort((taskA, taskB) => taskB.createdAt - taskA.createdAt);
       taskInput.value = "";
 
       renderTasks();
