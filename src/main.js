@@ -112,6 +112,7 @@ const renderApp = () => {
         editIcon.alt = "EditIcon";
         editIcon.className = "editIcon";
         editIcon.addEventListener("click", () => {
+          li.className = "";
           const inputTextEdit = document.createElement("input");
           inputTextEdit.type = "text";
           inputTextEdit.value = task.text;
