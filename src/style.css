@@ -191,3 +191,16 @@
   background-color: #dc3545;
   border-radius: 5px;
 }
+
+#popupMessage {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #dc3545;
+  color: #fff;
+  padding: 12px 24px;
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+}

@@ -7,11 +7,9 @@ const users = [
   },
 ];
 
-let userTasks = localStorage.getItem("tasksList")
+const tasks = localStorage.getItem("tasksList")
   ? JSON.parse(localStorage.getItem("tasksList"))
   : [];
-
-let tasks = [];
 
 let idList = localStorage.getItem("idList")
   ? JSON.parse(localStorage.getItem("idList"))
@@ -61,30 +59,6 @@ const isLoggedIn = () => {
 const renderApp = () => {
   if (isLoggedIn()) {
     document.querySelector("#app").innerHTML = toDoListPage;
-
-    // Load tasks from localStorage and render them
-    const loadAndRenderTasks = async () => {
-      let apiTasks = [];
-      try {
-        const response = await fetch(
-          "https://dummyjson.com/c/28e8-a101-4223-a35c"
-        );
-
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        apiTasks = await response.json();
-      } catch (error) {
-        console.error("Error fetching external tasks:", error);
-      }
-
-      tasks = [...userTasks, ...apiTasks];
-
-      tasks.sort((taskA, taskB) => taskA.createdAt - taskB.createdAt);
-
-      renderTasks();
-    };
-
     const logoutButton = document.getElementById("logoutButton");
     if (logoutButton) {
       logoutButton.addEventListener("click", function () {
@@ -117,19 +91,9 @@ const renderApp = () => {
           checkIcon.src = "./src/icons/checkIcon.svg";
         }
         checkIcon.addEventListener("click", () => {
-          const taskToUpdate = tasks[index];
-          taskToUpdate.done = !taskToUpdate.done;
-          taskToUpdate.updatedAt = Date.now();
-
-          const userTaskToUpdate = userTasks.find(
-            (t) => t.id === taskToUpdate.id
-          );
-          if (userTaskToUpdate) {
-            userTaskToUpdate.done = taskToUpdate.done;
-            userTaskToUpdate.updatedAt = taskToUpdate.updatedAt;
-            saveUserTasksToLocalStorage();
-          }
-
+          task.done = !task.done;
+          task.updatedAt = new Date().toLocaleString();
+          localStorage.setItem("tasksList", JSON.stringify(tasks));
           renderTasks();
         });
 
@@ -138,17 +102,8 @@ const renderApp = () => {
         trashIcon.alt = "TrashIcon";
         trashIcon.className = "trashIcon";
         trashIcon.addEventListener("click", () => {
-          const taskToRemove = tasks[index];
-
-          const userTaskIndex = userTasks.findIndex(
-            (t) => t.id === taskToRemove.id
-          );
-          if (userTaskIndex > -1) {
-            userTasks.splice(userTaskIndex, 1);
-            saveUserTasksToLocalStorage();
-          }
-
           tasks.splice(index, 1);
+          localStorage.setItem("tasksList", JSON.stringify(tasks));
           renderTasks();
         });
 
@@ -157,7 +112,6 @@ const renderApp = () => {
         editIcon.alt = "EditIcon";
         editIcon.className = "editIcon";
         editIcon.addEventListener("click", () => {
-          const originalText = task.text;
           const inputTextEdit = document.createElement("input");
           inputTextEdit.type = "text";
           inputTextEdit.value = task.text;
@@ -179,43 +133,12 @@ const renderApp = () => {
           inputTextEdit.addEventListener("keydown", (e) => {
             if (e.key === "Enter") {
               const newText = inputTextEdit.value.trim();
-
-              if (!newText) {
-                alert("The task cannot be empty.");
-                return;
+              if (newText) {
+                task.text = newText;
+                task.updatedAt = new Date().toLocaleString();
+                localStorage.setItem("tasksList", JSON.stringify(tasks));
+                renderTasks();
               }
-              if (newText.length < 10) {
-                alert("The task must be at least 10 characters long.");
-                return;
-              }
-              if (/^[0-9]+$/.test(newText)) {
-                alert("The task cannot contain only numbers.");
-                return;
-              }
-
-              const isDuplicate = tasks.some(
-                (existingTask) =>
-                  existingTask.text.toLowerCase() === newText.toLowerCase() &&
-                  existingTask.text.toLowerCase() !== originalText.toLowerCase()
-              );
-              if (isDuplicate) {
-                alert("This task already exists in the list.");
-                return;
-              }
-              const taskToUpdate = tasks[index];
-              taskToUpdate.text = newText;
-              taskToUpdate.updatedAt = Date.now();
-
-              const userTaskToUpdate = userTasks.find(
-                (t) => t.id === taskToUpdate.id
-              );
-              if (userTaskToUpdate) {
-                userTaskToUpdate.text = newText;
-                userTaskToUpdate.updatedAt = taskToUpdate.updatedAt;
-                saveUserTasksToLocalStorage();
-              }
-
-              renderTasks();
             }
           });
         });
@@ -230,55 +153,83 @@ const renderApp = () => {
       });
     };
 
+    const showPopupMessage = (message) => {
+      let popup = document.getElementById("popupMessage");
+      if (!popup) {
+        popup = document.createElement("div");
+        popup.id = "popupMessage";
+        document.body.appendChild(popup);
+      }
+      popup.textContent = message;
+      popup.style.display = "block";
+      setTimeout(() => {
+        popup.style.display = "none";
+      }, 2000);
+    };
+
     const addTask = () => {
       const text = taskInput.value.trim();
-      //validations
-      if (!text) {
-        alert("Task cannot be empty");
-        return;
-      }
-      if (text.length < 10) {
-        alert("The task must be at least 10 characters long.");
-        return;
-      }
+      if (text) {
+        if (tasks.find((task) => task.text === text)) {
+          showPopupMessage("Task already exists");
+          return;
+        }
 
-      if (/^[0-9]+$/.test(text)) {
-        alert("The task cannot be only numbers.");
-        return;
+        if (text.length < 10) {
+          showPopupMessage("Task is too short (min 10 characters)");
+          return;
+        }
+        const now = new Date();
+        const newTask = {
+          id: idList + 1,
+          text,
+          done: false,
+          createdAt: now.toLocaleString(),
+          updatedAt: now.toLocaleString(),
+        };
+        idList += 1;
+        tasks.push(newTask);
+        taskInput.value = "";
+        localStorage.setItem("tasksList", JSON.stringify(tasks));
+        renderTasks();
+      } else {
+        showPopupMessage("Please enter a task");
       }
-      const isDuplicate = tasks.some(
-        (task) => task.text.toLowerCase() === text.toLowerCase()
-      );
-      if (isDuplicate) {
-        alert("This task already exists in the list.");
-        return;
-      }
-
-      const newTask = {
-        id: idList + 1,
-        text,
-        done: false,
-        createdAt: Date.now(),
-        updatedAt: Date.now(),
+    };
+    const fetchButton = document.createElement("button");
+    fetchButton.id = "fetchButton";
+    fetchButton.type = "button";
+    fetchButton.textContent = "Fetch Tasks from API";
+    fetchButton.className = "fetchButton";
+    fetchButton.addEventListener("click", () => {
+      const fetchApi = async () => {
+        try {
+          const response = await fetch(
+            "https://dummyjson.com/c/28e8-a101-4223-a35c"
+          );
+          if (!response.ok) {
+            throw new Error("Network response was not ok");
+          }
+          const data = await response.json();
+          data.forEach((item) => {
+            item.id = idList + 1;
+            idList += 1;
+            tasks.push(item);
+          });
+          localStorage.setItem("tasksList", JSON.stringify(tasks));
+          localStorage.setItem("idList", JSON.stringify(idList));
+          renderTasks();
+        } catch (error) {
+          console.error("Error fetching tasks:", error);
+        }
       };
-      idList += 1;
-      userTasks.push(newTask);
-      saveUserTasksToLocalStorage();
-      tasks.push(newTask);
-      tasks.sort((taskA, taskB) => taskA.createdAt - taskB.createdAt);
-      taskInput.value = "";
+      fetchApi();
+    });
 
-      renderTasks();
-    };
-
-    const saveUserTasksToLocalStorage = () => {
-      localStorage.setItem("tasksList", JSON.stringify(userTasks));
-      localStorage.setItem("idList", JSON.stringify(idList));
-    };
-
+    const toDoListcontainer = document.querySelector(".toDoListcontainer");
+    toDoListcontainer.appendChild(fetchButton);
     addTaskButton.addEventListener("click", addTask);
-
-    loadAndRenderTasks();
+    renderTasks();
   } else {
     document.querySelector("#app").innerHTML = loginPage;
 
