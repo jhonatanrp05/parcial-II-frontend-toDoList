@@ -145,6 +145,7 @@ const renderApp = () => {
         editIcon.alt = "EditIcon";
         editIcon.className = "editIcon";
         editIcon.addEventListener("click", () => {
+          const originalText = task.text;
           const inputTextEdit = document.createElement("input");
           inputTextEdit.type = "text";
           inputTextEdit.value = task.text;
@@ -166,12 +167,34 @@ const renderApp = () => {
           inputTextEdit.addEventListener("keydown", (e) => {
             if (e.key === "Enter") {
               const newText = inputTextEdit.value.trim();
-              if (newText) {
-                task.text = newText;
-                task.updatedAt = Date.now();
-                saveUserTasksToLocalStorage();
-                renderTasks();
+
+              if (!newText) {
+                alert("The task cannot be empty.");
+                return;
               }
+              if (newText.length < 10) {
+                alert("The task must be at least 10 characters long.");
+                return;
+              }
+              if (/^[0-9]+$/.test(newText)) {
+                alert("The task cannot contain only numbers.");
+                return;
+              }
+
+              const isDuplicate = tasks.some(
+                (existingTask) =>
+                  existingTask.text.toLowerCase() === newText.toLowerCase() &&
+                  existingTask.text.toLowerCase() !== originalText.toLowerCase()
+              );
+              if (isDuplicate) {
+                alert("This task already exists in the list.");
+                return;
+              }
+
+              task.text = newText;
+              task.updatedAt = Date.now();
+              saveUserTasksToLocalStorage();
+              renderTasks();
             }
           });
         });
@@ -188,22 +211,41 @@ const renderApp = () => {
 
     const addTask = () => {
       const text = taskInput.value.trim();
-      if (text) {
-        const now = new Date();
-        const newTask = {
-          id: idList + 1,
-          text,
-          done: false,
-          createdAt: Date.now(),
-          updatedAt: Date.now(),
-          isUserTask: true,
-        };
-        idList += 1;
-        tasks.push(newTask);
-        taskInput.value = "";
-        saveUserTasksToLocalStorage();
-        renderTasks();
+      //validations
+      if (!text) {
+        alert("Task cannot be empty");
+        return;
       }
+      if (text.length < 10) {
+        alert("The task must be at least 10 characters long.");
+        return;
+      }
+
+      if (/^[0-9]+$/.test(text)) {
+        alert("The task cannot be only numbers.");
+        return;
+      }
+      const isDuplicate = tasks.some(
+        (task) => task.text.toLowerCase() === text.toLowerCase()
+      );
+      if (isDuplicate) {
+        alert("This task already exists in the list.");
+        return;
+      }
+
+      const newTask = {
+        id: idList + 1,
+        text,
+        done: false,
+        createdAt: Date.now(),
+        updatedAt: Date.now(),
+        isUserTask: true,
+      };
+      idList += 1;
+      tasks.push(newTask);
+      taskInput.value = "";
+      saveUserTasksToLocalStorage();
+      renderTasks();
     };
 
     const saveUserTasksToLocalStorage = () => {
