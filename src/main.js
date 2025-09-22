@@ -7,9 +7,11 @@ const users = [
   },
 ];
 
-let tasks = localStorage.getItem("tasksList")
+let userTasks = localStorage.getItem("tasksList")
   ? JSON.parse(localStorage.getItem("tasksList"))
   : [];
+
+let tasks = [];
 
 let idList = localStorage.getItem("idList")
   ? JSON.parse(localStorage.getItem("idList"))
@@ -62,10 +64,7 @@ const renderApp = () => {
 
     // Load tasks from localStorage and render them
     const loadAndRenderTasks = async () => {
-      const localTasks = localStorage.getItem("tasksList")
-        ? JSON.parse(localStorage.getItem("tasksList"))
-        : [];
-
+      let apiTasks = [];
       try {
         const response = await fetch(
           "https://dummyjson.com/c/28e8-a101-4223-a35c"
@@ -74,20 +73,14 @@ const renderApp = () => {
         if (!response.ok) {
           throw new Error(`HTTP error! status: ${response.status}`);
         }
-        // Parse the JSON response
-        const externalTasks = await response.json();
-
-        // Combine local tasks with external tasks
-        const allTasks = [...localTasks, ...externalTasks];
-
-        // Sort tasks by creation date
-        allTasks.sort((taskA, taskB) => taskA.createdAt - taskB.createdAt);
-
-        tasks = allTasks;
+        apiTasks = await response.json();
       } catch (error) {
         console.error("Error fetching external tasks:", error);
-        tasks = localTasks; // Fallback to local tasks if fetch fails
       }
+
+      tasks = [...userTasks, ...apiTasks];
+
+      tasks.sort((taskA, taskB) => taskA.createdAt - taskB.createdAt);
 
       renderTasks();
     };
@@ -124,9 +117,19 @@ const renderApp = () => {
           checkIcon.src = "./src/icons/checkIcon.svg";
         }
         checkIcon.addEventListener("click", () => {
-          task.done = !task.done;
-          task.updatedAt = Date.now();
-          saveUserTasksToLocalStorage();
+          const taskToUpdate = tasks[index];
+          taskToUpdate.done = !taskToUpdate.done;
+          taskToUpdate.updatedAt = Date.now();
+
+          const userTaskToUpdate = userTasks.find(
+            (t) => t.id === taskToUpdate.id
+          );
+          if (userTaskToUpdate) {
+            userTaskToUpdate.done = taskToUpdate.done;
+            userTaskToUpdate.updatedAt = taskToUpdate.updatedAt;
+            saveUserTasksToLocalStorage();
+          }
+
           renderTasks();
         });
 
@@ -135,8 +138,17 @@ const renderApp = () => {
         trashIcon.alt = "TrashIcon";
         trashIcon.className = "trashIcon";
         trashIcon.addEventListener("click", () => {
+          const taskToRemove = tasks[index];
+
+          const userTaskIndex = userTasks.findIndex(
+            (t) => t.id === taskToRemove.id
+          );
+          if (userTaskIndex > -1) {
+            userTasks.splice(userTaskIndex, 1);
+            saveUserTasksToLocalStorage();
+          }
+
           tasks.splice(index, 1);
-          saveUserTasksToLocalStorage();
           renderTasks();
         });
 
@@ -190,10 +202,19 @@ const renderApp = () => {
                 alert("This task already exists in the list.");
                 return;
               }
+              const taskToUpdate = tasks[index];
+              taskToUpdate.text = newText;
+              taskToUpdate.updatedAt = Date.now();
 
-              task.text = newText;
-              task.updatedAt = Date.now();
-              saveUserTasksToLocalStorage();
+              const userTaskToUpdate = userTasks.find(
+                (t) => t.id === taskToUpdate.id
+              );
+              if (userTaskToUpdate) {
+                userTaskToUpdate.text = newText;
+                userTaskToUpdate.updatedAt = taskToUpdate.updatedAt;
+                saveUserTasksToLocalStorage();
+              }
+
               renderTasks();
             }
           });
@@ -239,18 +260,20 @@ const renderApp = () => {
         done: false,
         createdAt: Date.now(),
         updatedAt: Date.now(),
-        isUserTask: true,
       };
       idList += 1;
-      tasks.push(newTask);
-      taskInput.value = "";
+      userTasks.push(newTask);
       saveUserTasksToLocalStorage();
+      tasks.push(newTask);
+      tasks.sort((taskA, taskB) => taskA.createdAt - taskB.createdAt);
+      taskInput.value = "";
+
       renderTasks();
     };
 
     const saveUserTasksToLocalStorage = () => {
-      const userTasks = tasks.filter((task) => task.isUserTask === true);
       localStorage.setItem("tasksList", JSON.stringify(userTasks));
+      localStorage.setItem("idList", JSON.stringify(idList));
     };
 
     addTaskButton.addEventListener("click", addTask);
