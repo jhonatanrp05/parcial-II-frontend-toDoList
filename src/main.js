@@ -115,6 +115,7 @@ const renderApp = () => {
           const inputTextEdit = document.createElement("input");
           inputTextEdit.type = "text";
           inputTextEdit.value = task.text;
+          inputTextEdit.className = "inputTextEdit";
           const closeIcon = document.createElement("img");
           closeIcon.src = "./src/icons/closeIcon.svg";
           closeIcon.alt = "CloseIcon";
@@ -161,9 +162,11 @@ const renderApp = () => {
         document.body.appendChild(popup);
       }
       popup.textContent = message;
-      popup.style.display = "block";
+
+      popup.classList.add("show");
+
       setTimeout(() => {
-        popup.style.display = "none";
+        popup.classList.remove("show");
       }, 2000);
     };
 
@@ -179,6 +182,12 @@ const renderApp = () => {
           showPopupMessage("Task is too short (min 10 characters)");
           return;
         }
+
+        if (/^[0-9]+$/.test(text)) {
+          showPopupMessage("Task cannot be only numbers");
+          return;
+        }
+
         const now = new Date();
         const newTask = {
           id: idList + 1,

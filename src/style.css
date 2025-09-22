@@ -84,6 +84,11 @@
   color: #fff;
   font-size: 16px;
   cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#logoutButton:hover {
+  background-color: #bc1425;
 }
 
 .taskInputContainer {
@@ -110,6 +115,11 @@
   color: #fff;
   font-size: 16px;
   cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+#addTaskButton:hover {
+  background-color: #026a03;
 }
 
 #taskList > li {
@@ -124,6 +134,8 @@
   justify-content: space-between;
   align-items: center;
 }
+
+
 
 .trashIcon {
   cursor: pointer;
@@ -196,11 +208,50 @@
   position: fixed;
   top: 20px;
   left: 50%;
-  transform: translateX(-50%);
+  transform: translateX(-50%) translateY(-50%);
   background: #dc3545;
   color: #fff;
   padding: 12px 24px;
-  border-radius: 6px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  border-radius: 8px;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
   z-index: 1000;
+  opacity: 0;
+  transition: opacity 0.5s ease-in-out, transform 0.5s ease-in-out;
+  pointer-events: none;
+}
+
+#popupMessage.show {
+  opacity: 1;
+  transform: translateX(-50%) translateY(0);
+  pointer-events: auto;
+}
+
+.fetchButton {
+  display: block;
+  margin: 20px auto 10px;
+  padding: 10px 15px;
+  font-size: 14px;
+  font-weight: bold;
+  color: white;
+  background-color: #007bff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.fetchButton:hover {
+  background-color: #0056b3;
+}
+
+.inputTextEdit {
+  width: 70%;
+  font-size: 16px;
+  font-family: inherit;
+  color: inherit;
+  border: 1px solid #048a23;
+  padding: 5px;
+  outline: none;
+  border-radius: 6px;
 }
